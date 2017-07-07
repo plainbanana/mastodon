@@ -11,6 +11,7 @@ node(:meta) do
     boost_modal: current_account.user.setting_boost_modal,
     delete_modal: current_account.user.setting_delete_modal,
     auto_play_gif: current_account.user.setting_auto_play_gif,
+    system_font_ui: current_account.user.setting_system_font_ui,
   }
 end
 
@@ -23,8 +24,8 @@ end
 
 node(:accounts) do
   store = {}
-  store[current_account.id] = partial('api/v1/accounts/show', object: current_account)
-  store[@admin.id] = partial('api/v1/accounts/show', object: @admin) unless @admin.nil?
+  store[current_account.id] = ActiveModelSerializers::SerializableResource.new(current_account, serializer: REST::AccountSerializer)
+  store[@admin.id] = ActiveModelSerializers::SerializableResource.new(@admin, serializer: REST::AccountSerializer) unless @admin.nil?
   store
 end
 
