@@ -11,6 +11,7 @@ import Link from 'react-router-dom/Link';
 import { FormattedDate, FormattedNumber } from 'react-intl';
 import CardContainer from '../containers/card_container';
 import ImmutablePureComponent from 'react-immutable-pure-component';
+import { unknown_media_detection } from '../../../unknown_media_detection';
 
 export default class DetailedStatus extends ImmutablePureComponent {
 
@@ -41,9 +42,9 @@ export default class DetailedStatus extends ImmutablePureComponent {
     let applicationLink = '';
 
     if (status.get('media_attachments').size > 0) {
-      if (status.get('media_attachments').some(item => item.get('type') === 'unknown')) {
+      if (status.get('media_attachments').some(item => item.get('type') === 'unknown') && status.get('media_attachments').some(item => unknown_media_detection(item.get('remote_url')) === 'unknown')) {
         media = <AttachmentList media={status.get('media_attachments')} />;
-      } else if (status.getIn(['media_attachments', 0, 'type']) === 'video') {
+      } else if (status.getIn(['media_attachments', 0, 'type']) === 'video' || unknown_media_detection(status.getIn(['media_attachments', 0]).get('remote_url')) === 'video') {
         media = <VideoPlayer sensitive={status.get('sensitive')} media={status.getIn(['media_attachments', 0])} width={300} height={150} onOpenVideo={this.props.onOpenVideo} autoplay />;
       } else {
         media = <MediaGallery sensitive={status.get('sensitive')} media={status.get('media_attachments')} height={300} onOpenMedia={this.props.onOpenMedia} autoPlayGif={this.props.autoPlayGif} />;

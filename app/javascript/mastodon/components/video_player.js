@@ -134,6 +134,13 @@ export default class VideoPlayer extends React.PureComponent {
     }
 
     let muteButton = '';
+    let media_src = '';
+    
+    if (media.get('type') === 'unknown') {
+      media_src = media.get('remote_url');
+    } else {
+      media_src = media.get('url');
+    }
 
     if (this.state.hasAudio) {
       muteButton = (
@@ -191,7 +198,7 @@ export default class VideoPlayer extends React.PureComponent {
           role='button'
           tabIndex='0'
           ref={this.setRef}
-          src={media.get('url')}
+          src={media_src}
           autoPlay={!isIOS()}
           loop
           muted={this.state.muted}
