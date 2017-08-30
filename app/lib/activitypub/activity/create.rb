@@ -4,7 +4,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   def perform
     return if delete_arrived_first?(object_uri) || unsupported_object_type?
 
-    status = Status.find_by(uri: object_uri)
+    status = find_existing_status
 
     return status unless status.nil?
 
@@ -23,10 +23,16 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   private
 
+  def find_existing_status
+    status   = Status.find_by(uri: object_uri)
+    status ||= Status.find_by(uri: @object['_:atomUri']) if @object['_:atomUri'].present?
+    status
+  end
+
   def status_params
     {
       uri: @object['id'],
-      url: @object['url'],
+      url: @object['url'] || @object['id'],
       account: @account,
       text: text_from_content || '',
       language: language_from_content,
@@ -62,7 +68,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def process_mention(tag, status)
     account = account_from_uri(tag['href'])
-    account = ActivityPub::FetchRemoteAccountService.new.call(tag['href']) if account.nil?
+    account = FetchRemoteAccountService.new.call(tag['href']) if account.nil?
     return if account.nil?
     account.mentions.create(status: status)
   end
@@ -85,7 +91,7 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
 
   def resolve_thread(status)
     return unless status.reply? && status.thread.nil?
-    ActivityPub::ThreadResolveWorker.perform_async(status.id, @object['inReplyTo'])
+    ThreadResolveWorker.perform_async(status.id, in_reply_to_uri)
   end
 
   def conversation_from_uri(uri)
@@ -112,8 +118,19 @@ class ActivityPub::Activity::Create < ActivityPub::Activity
   end
 
   def replied_to_status
-    return if @object['inReplyTo'].blank?
-    @replied_to_status ||= status_from_uri(@object['inReplyTo'])
+    return @replied_to_status if defined?(@replied_to_status)
+
+    if in_reply_to_uri.blank?
+      @replied_to_status = nil
+    else
+      @replied_to_status   = status_from_uri(in_reply_to_uri)
+      @replied_to_status ||= status_from_uri(@object['_:inReplyToAtomUri']) if @object['_:inReplyToAtomUri'].present?
+      @replied_to_status
+    end
+  end
+
+  def in_reply_to_uri
+    value_or_id(@object['inReplyTo'])
   end
 
   def text_from_content

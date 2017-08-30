@@ -39,6 +39,10 @@ class ActivityPub::Activity
         ActivityPub::Activity::Update
       when 'Undo'
         ActivityPub::Activity::Undo
+      when 'Accept'
+        ActivityPub::Activity::Accept
+      when 'Reject'
+        ActivityPub::Activity::Reject
       end
     end
   end
@@ -54,7 +58,7 @@ class ActivityPub::Activity
   end
 
   def object_uri
-    @object_uri ||= @object.is_a?(String) ? @object : @object['id']
+    @object_uri ||= value_or_id(@object)
   end
 
   def redis
@@ -89,7 +93,7 @@ class ActivityPub::Activity
   end
 
   def distribute_to_followers(status)
-    DistributionWorker.perform_async(status.id)
+    ::DistributionWorker.perform_async(status.id)
   end
 
   def delete_arrived_first?(uri)
