@@ -165,6 +165,9 @@ pl:
       unresolved: Nierozwiązane
       view: Wyświetl
     settings:
+      bootstrap_timeline_accounts:
+        desc_html: Oddzielaj nazwy użytkowników przecinkami. Działa tylko dla niezablokowanych kont w obrębie instancji. Jeżeli puste, zostaną użyte konta administratorów instancji.
+        title: Domyślne obserwacje nowych użytkowników
       contact_information:
         email: Służbowy adres e-mail
         username: Nazwa użytkownika do kontaktu
@@ -451,11 +454,11 @@ pl:
     show_more: Pokaż więcej
     visibilities:
       private: Tylko dla śledzących
-      private_long: Widoczny tylko dla osób, które Cię śledzą
-      public: Publiczny
-      public_long: Widoczny dla wszystkich użytkowników
-      unlisted: Niewypisany
-      unlisted_long: Widoczny dla wszystkich, ale nie wyświetlany na publicznych osiach czasu
+      private_long: Widoczne tylko dla osób, które Cię śledzą
+      public: Publiczne
+      public_long: Widoczne dla wszystkich użytkowników
+      unlisted: Niewypisane
+      unlisted_long: Widoczne dla wszystkich, ale nie wyświetlane na publicznych osiach czasu
   stream_entries:
     click_to_show: Naciśnij aby wyświetlić
     pinned: Przypięty wpis
