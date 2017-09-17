@@ -2,7 +2,6 @@ import React from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ImmutablePureComponent from 'react-immutable-pure-component';
 import Permalink from '../../../components/permalink';
-import { unknown_media_detection } from '../../../unknown_media_detection';
 
 export default class MediaItem extends ImmutablePureComponent {
 
@@ -21,11 +20,7 @@ export default class MediaItem extends ImmutablePureComponent {
     }
 
     if (!status.get('sensitive')) {
-      if (media.get('type') !== 'unknown') {
-        style = { backgroundImage: `url(${media.get('preview_url')})` };
-      } else if (unknown_media_detection(media.get('remote_url')) === 'image') {
-        style = { backgroundImage: `url(${media.get('remote_url')})` };
-      }
+      style = { backgroundImage: `url(${media.get('preview_url')})` };
     }
 
     return (
