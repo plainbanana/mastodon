@@ -26,6 +26,9 @@ class OStatus::Activity::Creation < OStatus::Activity::Base
     cached_reblog = reblog
     status = nil
 
+    # Skip if the reblogged status is not public
+    return if cached_reblog && !(cached_reblog.public_visibility? || cached_reblog.unlisted_visibility?)
+
     media_attachments = save_media
 
     ApplicationRecord.transaction do
@@ -58,7 +61,7 @@ class OStatus::Activity::Creation < OStatus::Activity::Base
     Rails.logger.debug "Queuing remote status #{status.id} (#{id}) for distribution"
 
     LinkCrawlWorker.perform_async(status.id) unless status.spoiler_text?
-    DistributionWorker.perform_async(status.id) if @options[:override_timestamps]
+    DistributionWorker.perform_async(status.id) if @options[:override_timestamps] || status.within_realtime_window?
 
     status
   end
