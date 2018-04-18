@@ -58,8 +58,10 @@ Rails.application.routes.draw do
     resources :following, only: [:index], controller: :following_accounts
     resource :follow, only: [:create], controller: :account_follow
     resource :unfollow, only: [:create], controller: :account_unfollow
+
     resource :outbox, only: [:show], module: :activitypub
     resource :inbox, only: [:create], module: :activitypub
+    resources :collections, only: [:show], module: :activitypub
   end
 
   resource :inbox, only: [:create], module: :activitypub
@@ -114,6 +116,7 @@ Rails.application.routes.draw do
   get '/media_proxy/:id/(*any)', to: 'media_proxy#show', as: :media_proxy
 
   # Remote follow
+  resource :remote_unfollow, only: [:create]
   resource :authorize_follow, only: [:show, :create]
   resource :share, only: [:show, :create]
 
@@ -135,6 +138,8 @@ Rails.application.routes.draw do
       resources :reported_statuses, only: [:create, :update, :destroy]
     end
 
+    resources :report_notes, only: [:create, :destroy]
+
     resources :accounts, only: [:index, :show] do
       member do
         post :subscribe
@@ -142,9 +147,11 @@ Rails.application.routes.draw do
         post :enable
         post :disable
         post :redownload
+        post :remove_avatar
         post :memorialize
       end
 
+      resource :change_email, only: [:show, :update]
       resource :reset, only: [:create]
       resource :silence, only: [:create, :destroy]
       resource :suspension, only: [:create, :destroy]
@@ -222,6 +229,7 @@ Rails.application.routes.draw do
       end
 
       namespace :timelines do
+        resource :direct, only: :show, controller: :direct
         resource :home, only: :show, controller: :home
         resource :public, only: :show, controller: :public
         resources :tag, only: :show

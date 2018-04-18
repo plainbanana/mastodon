@@ -57,7 +57,7 @@ class Status < ApplicationRecord
   has_one :stream_entry, as: :activity, inverse_of: :status
 
   validates :uri, uniqueness: true, presence: true, unless: :local?
-  validates :text, presence: true, unless: :reblog?
+  validates :text, presence: true, unless: -> { with_media? || reblog? }
   validates_with StatusLengthValidator
   validates :reblog, uniqueness: { scope: :account }, if: :reblog?
 
@@ -150,8 +150,12 @@ class Status < ApplicationRecord
     private_visibility? || direct_visibility?
   end
 
+  def with_media?
+    media_attachments.any?
+  end
+
   def non_sensitive_with_media?
-    !sensitive? && media_attachments.any?
+    !sensitive? && with_media?
   end
 
   def emojis
@@ -177,6 +181,14 @@ class Status < ApplicationRecord
 
     def as_home_timeline(account)
       where(account: [account] + account.following).where(visibility: [:public, :unlisted, :private])
+    end
+
+    def as_direct_timeline(account)
+      query = joins("LEFT OUTER JOIN mentions ON statuses.id = mentions.status_id AND mentions.account_id = #{account.id}")
+              .where("mentions.account_id = #{account.id} OR statuses.account_id = #{account.id}")
+              .where(visibility: [:direct])
+
+      apply_timeline_filters(query, account, false)
     end
 
     def as_public_timeline(account = nil, local_only = false)
@@ -318,7 +330,7 @@ class Status < ApplicationRecord
       self.in_reply_to_account_id = carried_over_reply_to_account_id
       self.conversation_id        = thread.conversation_id if conversation_id.nil?
     elsif conversation_id.nil?
-      create_conversation
+      self.conversation = Conversation.new
     end
   end
 

@@ -4,7 +4,7 @@ class SearchService < BaseService
   attr_accessor :query, :account, :limit, :resolve
 
   def call(query, limit, resolve = false, account = nil)
-    @query   = query
+    @query   = query.strip
     @account = account
     @limit   = limit
     @resolve = resolve
@@ -29,7 +29,9 @@ class SearchService < BaseService
   def perform_statuses_search!
     statuses = StatusesIndex.filter(term: { searchable_by: account.id })
                             .query(multi_match: { type: 'most_fields', query: query, operator: 'and', fields: %w(text text.stemmed) })
-                            .limit(limit).objects
+                            .limit(limit)
+                            .objects
+                            .compact
 
     statuses.reject { |status| StatusFilter.new(status, account).filtered? }
   end

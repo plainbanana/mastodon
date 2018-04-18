@@ -23,7 +23,7 @@ namespace :mastodon do
       prompt.say('Single user mode disables registrations and redirects the landing page to your public profile.')
       env['SINGLE_USER_MODE'] = prompt.yes?('Do you want to enable single user mode?', default: false)
 
-      %w(SECRET_KEY_BASE PAPERCLIP_SECRET OTP_SECRET).each do |key|
+      %w(SECRET_KEY_BASE OTP_SECRET).each do |key|
         env[key] = SecureRandom.hex(64)
       end
 
@@ -224,24 +224,39 @@ namespace :mastodon do
       prompt.say "\n"
 
       loop do
-        env['SMTP_SERVER'] = prompt.ask('SMTP server:') do |q|
-          q.required true
-          q.default 'smtp.mailgun.org'
-          q.modify :strip
-        end
+        if prompt.yes?('Do you want to send e-mails from localhost?', default: false)
+          env['SMTP_SERVER'] = 'localhost'
+          env['SMTP_PORT'] = 25
+          env['SMTP_AUTH_METHOD'] = 'none'
+          env['SMTP_OPENSSL_VERIFY_MODE'] = 'none'
+        else
+          env['SMTP_SERVER'] = prompt.ask('SMTP server:') do |q|
+            q.required true
+            q.default 'smtp.mailgun.org'
+            q.modify :strip
+          end
 
-        env['SMTP_PORT'] = prompt.ask('SMTP port:') do |q|
-          q.required true
-          q.default 587
-          q.convert :int
-        end
+          env['SMTP_PORT'] = prompt.ask('SMTP port:') do |q|
+            q.required true
+            q.default 587
+            q.convert :int
+          end
 
-        env['SMTP_LOGIN'] = prompt.ask('SMTP username:') do |q|
-          q.modify :strip
-        end
+          env['SMTP_LOGIN'] = prompt.ask('SMTP username:') do |q|
+            q.modify :strip
+          end
 
-        env['SMTP_PASSWORD'] = prompt.ask('SMTP password:') do |q|
-          q.echo false
+          env['SMTP_PASSWORD'] = prompt.ask('SMTP password:') do |q|
+            q.echo false
+          end
+
+          env['SMTP_AUTH_METHOD'] = prompt.ask('SMTP authentication:') do |q|
+            q.required
+            q.default 'plain'
+            q.modify :strip
+          end
+
+          env['SMTP_OPENSSL_VERIFY_MODE'] = prompt.select('SMTP OpenSSL verify mode:', %w(none peer client_once fail_if_no_peer_cert))
         end
 
         env['SMTP_FROM_ADDRESS'] = prompt.ask('E-mail address to send e-mails "from":') do |q|
@@ -261,7 +276,8 @@ namespace :mastodon do
             :user_name            => env['SMTP_LOGIN'].presence,
             :password             => env['SMTP_PASSWORD'].presence,
             :domain               => env['LOCAL_DOMAIN'],
-            :authentication       => :plain,
+            :authentication       => env['SMTP_AUTH_METHOD'] == 'none' ? nil : env['SMTP_AUTH_METHOD'] || :plain,
+            :openssl_verify_mode  => env['SMTP_OPENSSL_VERIFY_MODE'],
             :enable_starttls_auto => true,
           }
 
@@ -271,6 +287,7 @@ namespace :mastodon do
 
           mail = ActionMailer::Base.new.mail to: send_to, subject: 'Test', body: 'Mastodon SMTP configuration works!'
           mail.deliver
+          break
         rescue StandardError => e
           prompt.error 'E-mail could not be sent with this configuration, try again.'
           prompt.error e.message
@@ -286,6 +303,14 @@ namespace :mastodon do
 
         File.write(Rails.root.join('.env.production'), "# Generated with mastodon:setup on #{Time.now.utc}\n\n" + env.each_pair.map { |key, value| "#{key}=#{value}" }.join("\n") + "\n")
 
+        if using_docker
+          prompt.ok 'Below is your configuration, save it to an .env.production file outside Docker:'
+          prompt.say "\n"
+          prompt.say File.read(Rails.root.join('.env.production'))
+          prompt.say "\n"
+          prompt.ok 'It is also saved within this container so you can proceed with this wizard.'
+        end
+
         prompt.say "\n"
         prompt.say 'Now that configuration is saved, the database schema must be loaded.'
         prompt.warn 'If the database already exists, this will erase its contents.'
@@ -294,7 +319,7 @@ namespace :mastodon do
           prompt.say 'Running `RAILS_ENV=production rails db:setup` ...'
           prompt.say "\n"
 
-          if cmd.run!({ RAILS_ENV: 'production' }, :rails, 'db:setup').failure?
+          if cmd.run!({ RAILS_ENV: 'production', SAFETY_ASSURED: 1 }, :rails, 'db:setup').failure?
             prompt.say "\n"
             prompt.error 'That failed! Perhaps your configuration is not right'
           else
@@ -443,7 +468,7 @@ namespace :mastodon do
 
         if user.save
           prompt.ok 'User created and confirmation mail sent to the user\'s email address.'
-          prompt.ok "Here is the random password generated for the user: #{password}"
+          prompt.ok "Here is the random password generated for the user: #{user.password}"
         else
           prompt.warn 'User was not created because of the following errors:'
 
@@ -476,6 +501,8 @@ namespace :mastodon do
       time_ago = ENV.fetch('NUM_DAYS') { 7 }.to_i.days.ago
 
       MediaAttachment.where.not(remote_url: '').where.not(file_file_name: nil).where('created_at < ?', time_ago).find_each do |media|
+        next unless media.file.exists?
+
         media.file.destroy
         media.save
       end
@@ -494,9 +521,13 @@ namespace :mastodon do
       accounts = accounts.where(domain: ENV['DOMAIN']) if ENV['DOMAIN'].present?
 
       accounts.find_each do |account|
-        account.reset_avatar!
-        account.reset_header!
-        account.save
+        begin
+          account.reset_avatar!
+          account.reset_header!
+          account.save
+        rescue Paperclip::Error
+          puts "Error resetting avatar and header for account #{username}@#{domain}"
+        end
       end
     end
   end
@@ -705,6 +736,24 @@ namespace :mastodon do
       LinkCrawlWorker.push_bulk status_ids
     end
 
+    desc 'Find case-insensitive username duplicates of local users'
+    task find_duplicate_usernames: :environment do
+      include RoutingHelper
+
+      disable_log_stdout!
+
+      duplicate_masters = Account.find_by_sql('SELECT * FROM accounts WHERE id IN (SELECT min(id) FROM accounts WHERE domain IS NULL GROUP BY lower(username) HAVING count(*) > 1)')
+      pastel = Pastel.new
+
+      duplicate_masters.each do |account|
+        puts pastel.yellow("First of their name: ") + pastel.bold(account.username) + " (#{admin_account_url(account.id)})"
+
+        Account.where('lower(username) = ?', account.username.downcase).where.not(id: account.id).each do |duplicate|
+          puts "  " + pastel.red("Duplicate: ") + admin_account_url(duplicate.id)
+        end
+      end
+    end
+
     desc 'Remove all home feed regeneration markers'
     task remove_regeneration_markers: :environment do
       keys = Redis.current.keys('account:*:regeneration')
@@ -742,7 +791,7 @@ namespace :mastodon do
         progress_bar.increment
 
         begin
-          res = Request.new(:head, account.uri).perform
+          code = Request.new(:head, account.uri).perform(&:code)
         rescue StandardError
           # This could happen due to network timeout, DNS timeout, wrong SSL cert, etc,
           # which should probably not lead to perceiving the account as deleted, so
@@ -750,7 +799,7 @@ namespace :mastodon do
           next
         end
 
-        if [404, 410].include?(res.code)
+        if [404, 410].include?(code)
           if options[:force]
             SuspendAccountService.new.call(account)
             account.destroy

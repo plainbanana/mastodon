@@ -15,117 +15,169 @@ $small-breakpoint: 960px;
   }
 }
 
-.show-xs,
-.show-sm {
-  display: none;
-}
+.landing-page {
+  .grid {
+    display: grid;
+    grid-gap: 10px;
+    grid-template-columns: 1fr 2fr;
+    grid-auto-columns: 25%;
+    grid-auto-rows: max-content;
 
-.show-m {
-  display: block;
-}
+    .column-0 {
+      display: none;
+    }
 
-@media screen and (max-width: $small-breakpoint) {
-  .hide-sm {
-    display: none !important;
+    .column-1 {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .column-2 {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .column-3 {
+      grid-column: 3;
+      grid-row: 1 / 3;
+    }
+
+    .column-4 {
+      grid-column: 1 / 3;
+      grid-row: 2;
+    }
   }
 
-  .show-sm {
-    display: block !important;
-  }
-}
+  @media screen and (max-width: $small-breakpoint) {
+    .grid {
+      grid-template-columns: 40% 60%;
 
-@media screen and (max-width: $column-breakpoint) {
-  .hide-xs {
-    display: none !important;
-  }
+      .column-0 {
+        display: none;
+      }
 
-  .show-xs {
-    display: block !important;
-  }
-}
+      .column-1 {
+        grid-column: 1;
+        grid-row: 1;
 
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0 -5px;
-
-  @for $i from 1 through 15 {
-    .column-#{$i} {
-      box-sizing: border-box;
-      min-height: 1px;
-      flex: 0 0 percentage($i / 15);
-      max-width: percentage($i / 15);
-      padding: 0 5px;
-
-      @media screen and (max-width: $small-breakpoint) {
-        &-sm {
-          box-sizing: border-box;
-          min-height: 1px;
-          flex: 0 0 percentage($i / 15);
-          max-width: percentage($i / 15);
-          padding: 0 5px;
-
-          @media screen and (max-width: $column-breakpoint) {
-            max-width: 100%;
-            flex: 0 0 100%;
-            margin-bottom: 10px;
-
-            &:last-child {
-              margin-bottom: 0;
-            }
-          }
+        &.non-preview .landing-page__forms {
+          height: 100%;
         }
       }
 
-      @media screen and (max-width: $column-breakpoint) {
-        max-width: 100%;
-        flex: 0 0 100%;
-        margin-bottom: 10px;
+      .column-2 {
+        grid-column: 2;
+        grid-row: 1 / 3;
 
-        &:last-child {
-          margin-bottom: 0;
+        &.non-preview {
+          grid-column: 2;
+          grid-row: 1;
+        }
+      }
+
+      .column-3 {
+        grid-column: 1;
+        grid-row: 2 / 4;
+      }
+
+      .column-4 {
+        grid-column: 2;
+        grid-row: 3;
+
+        &.non-preview {
+          grid-column: 1 / 3;
+          grid-row: 2;
         }
       }
     }
   }
-}
 
-.column-flex {
-  display: flex;
-  flex-direction: column;
-}
+  @media screen and (max-width: $column-breakpoint) {
+    .grid {
+      grid-template-columns: auto;
 
-.separator-or {
-  position: relative;
-  margin: 40px 0;
-  text-align: center;
+      .column-0 {
+        display: block;
+        grid-column: 1;
+        grid-row: 1;
+      }
 
-  &::before {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 0;
-    border-bottom: 1px solid rgba($ui-base-lighter-color, .6);
-    position: absolute;
-    top: 50%;
-    left: 0;
+      .column-1 {
+        grid-column: 1;
+        grid-row: 3;
+
+        .brand {
+          display: none;
+        }
+      }
+
+      .column-2 {
+        grid-column: 1;
+        grid-row: 2;
+
+        .landing-page__logo,
+        .landing-page__call-to-action {
+          display: none;
+        }
+
+        &.non-preview {
+          grid-column: 1;
+          grid-row: 2;
+        }
+      }
+
+      .column-3 {
+        grid-column: 1;
+        grid-row: 5;
+      }
+
+      .column-4 {
+        grid-column: 1;
+        grid-row: 4;
+
+        &.non-preview {
+          grid-column: 1;
+          grid-row: 4;
+        }
+      }
+    }
   }
 
-  span {
-    display: inline-block;
-    background: $ui-base-color;
-    font-size: 12px;
-    font-weight: 500;
-    color: $ui-primary-color;
-    text-transform: uppercase;
+  .column-flex {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .separator-or {
     position: relative;
-    z-index: 1;
-    padding: 0 8px;
-    cursor: default;
-  }
-}
+    margin: 40px 0;
+    text-align: center;
 
-.landing-page {
+    &::before {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 0;
+      border-bottom: 1px solid rgba($ui-base-lighter-color, .6);
+      position: absolute;
+      top: 50%;
+      left: 0;
+    }
+
+    span {
+      display: inline-block;
+      background: $ui-base-color;
+      font-size: 12px;
+      font-weight: 500;
+      color: $darker-text-color;
+      text-transform: uppercase;
+      position: relative;
+      z-index: 1;
+      padding: 0 8px;
+      cursor: default;
+    }
+  }
+
   p,
   li {
     font-family: 'mastodon-font-sans-serif', sans-serif;
@@ -134,11 +186,33 @@ $small-breakpoint: 960px;
     font-size: 16px;
     line-height: 30px;
     margin-bottom: 12px;
-    color: $ui-primary-color;
+    color: $darker-text-color;
 
     a {
-      color: $ui-highlight-color;
+      color: $highlight-text-color;
       text-decoration: underline;
+    }
+  }
+
+  .closed-registrations-message {
+    margin-top: 20px;
+
+    &,
+    p {
+      text-align: center;
+      font-size: 12px;
+      line-height: 18px;
+      color: $darker-text-color;
+      margin-bottom: 0;
+
+      a {
+        color: $highlight-text-color;
+        text-decoration: underline;
+      }
+    }
+
+    p:last-child {
+      margin-bottom: 0;
     }
   }
 
@@ -151,7 +225,7 @@ $small-breakpoint: 960px;
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
-    color: lighten($ui-primary-color, 10%);
+    color: transparentize($darker-text-color, 0.1);
   }
 
   h1 {
@@ -160,14 +234,14 @@ $small-breakpoint: 960px;
     line-height: 30px;
     font-weight: 500;
     margin-bottom: 20px;
-    color: $ui-secondary-color;
+    color: $primary-text-color;
 
     small {
       font-family: 'mastodon-font-sans-serif', sans-serif;
       display: block;
       font-size: 18px;
       font-weight: 400;
-      color: $ui-base-lighter-color;
+      color: opacify($darker-text-color, 0.1);
     }
   }
 
@@ -177,7 +251,7 @@ $small-breakpoint: 960px;
     line-height: 26px;
     font-weight: 500;
     margin-bottom: 20px;
-    color: $ui-secondary-color;
+    color: $primary-text-color;
   }
 
   h3 {
@@ -186,7 +260,7 @@ $small-breakpoint: 960px;
     line-height: 24px;
     font-weight: 500;
     margin-bottom: 20px;
-    color: $ui-secondary-color;
+    color: $primary-text-color;
   }
 
   h4 {
@@ -195,7 +269,7 @@ $small-breakpoint: 960px;
     line-height: 24px;
     font-weight: 500;
     margin-bottom: 20px;
-    color: $ui-secondary-color;
+    color: $primary-text-color;
   }
 
   h5 {
@@ -204,7 +278,7 @@ $small-breakpoint: 960px;
     line-height: 24px;
     font-weight: 500;
     margin-bottom: 20px;
-    color: $ui-secondary-color;
+    color: $primary-text-color;
   }
 
   h6 {
@@ -213,7 +287,7 @@ $small-breakpoint: 960px;
     line-height: 24px;
     font-weight: 500;
     margin-bottom: 20px;
-    color: $ui-secondary-color;
+    color: $primary-text-color;
   }
 
   ul,
@@ -248,6 +322,11 @@ $small-breakpoint: 960px;
     border: 0;
     border-bottom: 1px solid rgba($ui-base-lighter-color, .6);
     margin: 20px 0;
+
+    &.spacer {
+      height: 1px;
+      border: 0;
+    }
   }
 
   .container-alt {
@@ -275,10 +354,10 @@ $small-breakpoint: 960px;
         font-weight: 400;
         font-size: 16px;
         line-height: 30px;
-        color: $ui-primary-color;
+        color: $darker-text-color;
 
         a {
-          color: $ui-highlight-color;
+          color: $highlight-text-color;
           text-decoration: underline;
         }
       }
@@ -326,7 +405,7 @@ $small-breakpoint: 960px;
         font-size: 14px;
 
         &:hover {
-          color: $ui-secondary-color;
+          color: $darker-text-color;
         }
       }
 
@@ -399,10 +478,10 @@ $small-breakpoint: 960px;
     font-weight: 400;
     font-size: 16px;
     line-height: 30px;
-    color: $ui-primary-color;
+    color: $darker-text-color;
 
     a {
-      color: $ui-highlight-color;
+      color: $highlight-text-color;
       text-decoration: underline;
     }
   }
@@ -438,7 +517,7 @@ $small-breakpoint: 960px;
 
       span {
         &:last-child {
-          color: $ui-secondary-color;
+          color: $darker-text-color;
         }
       }
 
@@ -469,7 +548,7 @@ $small-breakpoint: 960px;
         font-size: 14px;
         line-height: 24px;
         font-weight: 500;
-        color: $ui-primary-color;
+        color: $darker-text-color;
         padding-bottom: 5px;
         margin-bottom: 15px;
         border-bottom: 1px solid lighten($ui-base-color, 4%);
@@ -480,7 +559,7 @@ $small-breakpoint: 960px;
         a,
         span {
           font-weight: 400;
-          color: darken($ui-primary-color, 10%);
+          color: opacify($darker-text-color, 0.1);
         }
 
         a {
@@ -523,7 +602,7 @@ $small-breakpoint: 960px;
 
         .username {
           display: block;
-          color: $ui-primary-color;
+          color: $darker-text-color;
         }
       }
     }
@@ -539,6 +618,7 @@ $small-breakpoint: 960px;
 
       img {
         position: static;
+        padding: 10px 0;
       }
 
       @media screen and (max-width: $small-breakpoint) {
@@ -558,18 +638,33 @@ $small-breakpoint: 960px;
   }
 
   &__call-to-action {
-    margin-bottom: 10px;
     background: darken($ui-base-color, 4%);
     border-radius: 4px;
     padding: 25px 40px;
     overflow: hidden;
 
     .row {
+      display: flex;
+      flex-direction: row-reverse;
+      flex-wrap: wrap;
+      justify-content: space-between;
       align-items: center;
     }
 
-    .information-board__section {
-      padding: 0;
+    .row__information-board {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+
+      .information-board__section {
+        flex: 1 0 auto;
+        padding: 0 10px;
+      }
+    }
+
+    .row__mascot {
+      flex: 1;
+      margin: 10px -50px 0 0;
     }
   }
 
@@ -589,6 +684,54 @@ $small-breakpoint: 960px;
 
     &:last-child {
       margin-bottom: 0;
+    }
+
+    .account {
+      border-bottom: 0;
+      padding: 0;
+
+      &__display-name {
+        align-items: center;
+        display: flex;
+        margin-right: 5px;
+      }
+
+      div.account__display-name {
+        &:hover {
+          .display-name strong {
+            text-decoration: none;
+          }
+        }
+
+        .account__avatar {
+          cursor: default;
+        }
+      }
+
+      &__avatar-wrapper {
+        margin-left: 0;
+        flex: 0 0 auto;
+      }
+
+      &__avatar {
+        width: 44px;
+        height: 44px;
+        background-size: 44px 44px;
+      }
+
+      .display-name {
+        font-size: 15px;
+
+        &__account {
+          font-size: 14px;
+        }
+      }
+    }
+
+    @media screen and (max-width: $small-breakpoint) {
+      .contact {
+        margin-top: 30px;
+      }
     }
 
     @media screen and (max-width: $column-breakpoint) {
@@ -619,6 +762,8 @@ $small-breakpoint: 960px;
 
   &__short-description {
     .row {
+      display: flex;
+      flex-wrap: wrap;
       align-items: center;
       margin-bottom: 40px;
     }
@@ -630,7 +775,7 @@ $small-breakpoint: 960px;
     }
 
     p a {
-      color: $ui-secondary-color;
+      color: $darker-text-color;
     }
 
     h1 {
@@ -639,10 +784,10 @@ $small-breakpoint: 960px;
       margin-bottom: 0;
 
       small {
-        color: $ui-primary-color;
+        color: $darker-text-color;
 
         span {
-          color: $ui-secondary-color;
+          color: $darker-text-color;
         }
       }
     }
@@ -668,7 +813,6 @@ $small-breakpoint: 960px;
     height: 100%;
 
     @media screen and (max-width: $small-breakpoint) {
-      margin-bottom: 10px;
       height: auto;
     }
 
@@ -717,6 +861,7 @@ $small-breakpoint: 960px;
     width: 100%;
     flex: 1 1 auto;
     overflow: hidden;
+    height: 100%;
 
     .column-header {
       color: inherit;
@@ -751,7 +896,7 @@ $small-breakpoint: 960px;
       }
 
       a {
-        color: $ui-secondary-color;
+        color: $darker-text-color;
         text-decoration: none;
       }
     }
@@ -762,8 +907,13 @@ $small-breakpoint: 960px;
   }
 
   &__features {
+    & > p {
+      padding-right: 60px;
+    }
+
     .features-list {
-      margin: 40px 0 !important;
+      margin: 40px 0;
+      margin-top: 30px;
     }
 
     &__action {
@@ -772,16 +922,10 @@ $small-breakpoint: 960px;
   }
 
   .features-list {
-    margin-top: 20px;
-
     .features-list__row {
       display: flex;
       padding: 10px 0;
       justify-content: space-between;
-
-      &:first-child {
-        padding-top: 0;
-      }
 
       .visual {
         flex: 0 0 auto;
@@ -791,7 +935,7 @@ $small-breakpoint: 960px;
 
         .fa {
           display: block;
-          color: $ui-primary-color;
+          color: $darker-text-color;
           font-size: 48px;
         }
       }
@@ -799,7 +943,7 @@ $small-breakpoint: 960px;
       .text {
         font-size: 16px;
         line-height: 30px;
-        color: $ui-primary-color;
+        color: $darker-text-color;
 
         h6 {
           font-size: inherit;
@@ -807,6 +951,14 @@ $small-breakpoint: 960px;
           margin-bottom: 0;
         }
       }
+    }
+
+    @media screen and (min-width: $small-breakpoint) {
+      display: grid;
+      grid-gap: 30px;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-columns: 50%;
+      grid-auto-rows: max-content;
     }
   }
 
@@ -817,10 +969,10 @@ $small-breakpoint: 960px;
     font-weight: 400;
     font-size: 16px;
     line-height: 30px;
-    color: $ui-primary-color;
+    color: $darker-text-color;
 
     a {
-      color: $ui-highlight-color;
+      color: $highlight-text-color;
       text-decoration: underline;
     }
   }
@@ -828,7 +980,7 @@ $small-breakpoint: 960px;
   .footer-links {
     padding-bottom: 50px;
     text-align: right;
-    color: $ui-base-lighter-color;
+    color: $darker-text-color;
 
     p {
       font-size: 14px;
@@ -843,7 +995,7 @@ $small-breakpoint: 960px;
   &__footer {
     margin-top: 10px;
     text-align: center;
-    color: $ui-base-lighter-color;
+    color: $darker-text-color;
 
     p {
       font-size: 14px;
@@ -942,93 +1094,54 @@ $small-breakpoint: 960px;
   }
 
   &.tag-page {
-    .features {
-      padding: 30px 0;
+    .grid {
+      @media screen and (min-width: $small-breakpoint) {
+        grid-template-columns: 33% 67%;
+      }
 
-      .container-alt {
-        max-width: 820px;
-
-        #mastodon-timeline {
-          margin-right: 0;
-          border-top-right-radius: 0;
-        }
-
-        .about-mastodon {
-          .about-hashtag {
-            background: darken($ui-base-color, 4%);
-            padding: 0 20px 20px 30px;
-            border-radius: 0 5px 5px 0;
-
-            .brand {
-              padding-top: 20px;
-              margin-bottom: 20px;
-
-              img {
-                height: 48px;
-                width: auto;
-              }
-            }
-
-            p {
-              strong {
-                color: $ui-secondary-color;
-                font-weight: 700;
-              }
-            }
-
-            .cta {
-              margin: 0;
-
-              .button {
-                margin-right: 4px;
-              }
-            }
-          }
-
-          .features-list {
-            margin-left: 30px;
-            margin-right: 10px;
-          }
-        }
+      .column-2 {
+        grid-column: 2;
+        grid-row: 1;
       }
     }
 
-    @media screen and (max-width: 675px) {
-      .features {
-        padding: 10px 0;
+    .brand {
+      text-align: unset;
+      padding: 0;
 
-        .container-alt {
-          display: flex;
-          flex-direction: column;
+      img {
+        height: 48px;
+        width: auto;
+      }
+    }
 
-          #mastodon-timeline {
-            order: 2;
-            flex: 0 0 auto;
-            height: 60vh;
-            margin-bottom: 20px;
-            border-top-right-radius: 4px;
-          }
+    .cta {
+      margin: 0;
 
-          .about-mastodon {
-            order: 1;
-            flex: 0 0 auto;
-            max-width: 100%;
+      .button {
+        margin-right: 4px;
+      }
+    }
 
-            .about-hashtag {
-              background: unset;
-              padding: 0;
-              border-radius: 0;
-
-              .cta {
-                margin: 20px 0;
-              }
-            }
-
-            .features-list {
-              display: none;
-            }
-          }
+    @media screen and (max-width: $column-breakpoint) {
+      .grid {
+        .column-1 {
+          grid-column: 1;
+          grid-row: 2;
         }
+
+        .column-2 {
+          grid-column: 1;
+          grid-row: 1;
+        }
+      }
+
+      .brand {
+        margin: 0;
+      }
+
+      .landing-page__features {
+        display: none;
       }
     }
   }
