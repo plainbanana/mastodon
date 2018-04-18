@@ -57,3 +57,10 @@ yarn-debug.log
 # Ignore Docker option files
 docker-compose.override.yml
 
+autoupdate.sh
+background-photo.jpg
+fluffy-elephant-friend.png
+startmustodon.sh
+stopmustodon.sh
+update-without-build.sh
+upstream-merge.sh
