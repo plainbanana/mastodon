@@ -74,12 +74,15 @@ services:
     depends_on:
       - db
       - redis
+    networks:
+      - external_network
+      - internal_network
     volumes:
       - ./public/system:/mastodon/public/system
 
   sidekiq1:
     build: .
-    image: gargron/mastodon
+    image: tootsuite/mastodon
     restart: always
     env_file: .env.production
     command: bundle exec sidekiq -c 10 -q push
